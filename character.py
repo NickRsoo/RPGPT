@@ -26,4 +26,3 @@ class Character:
     def add_achievement(self, achievement):
         self.achievements.append(achievement)
         ui.notify(f"Achievement erhalten: {achievement}!")
-
