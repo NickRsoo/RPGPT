@@ -1,6 +1,6 @@
 # main.py
 from nicegui import ui
-from todo_rpg_app import ToDoRPGApp
+from app.ui.todo_rpg_app import ToDoRPGApp
 
 def main():
     with ui.column().classes("p-4"):

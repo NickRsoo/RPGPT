@@ -1,8 +1,8 @@
 # todo_rpg_app.py
 from nicegui import ui
-from character import Character
-from quest import Quest
-from shop import Shop
+from app.components.character import Character
+from app.components.quest import Quest
+from app.components.shop import Shop
 
 class ToDoRPGApp:
     def __init__(self, character_name):
