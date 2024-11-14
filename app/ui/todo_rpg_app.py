@@ -1,14 +1,14 @@
 # todo_rpg_app.py
 from nicegui import ui
-from app.components.character import Character
-from app.components.quest import Quest
-from app.components.shop import Shop
+from components import character
+from components import quest
+from components import shop
 
 class ToDoRPGApp:
     def __init__(self, character_name):
-        self.character = Character(character_name)
+        self.character = character(character_name)
         self.quests = []
-        self.shop = Shop()
+        self.shop = shop()
         self.setup_ui()
 
     def setup_ui(self):
@@ -37,7 +37,7 @@ class ToDoRPGApp:
             ui.button("Hinzufügen", on_click=lambda: self.add_quest(description.value, int(xp_reward.value), int(gold_reward.value), dialog))
 
     def add_quest(self, description, xp_reward, gold_reward, dialog=None):
-        quest = Quest(description, xp_reward, gold_reward)
+        quest = quest(description, xp_reward, gold_reward)
         self.quests.append(quest)
         with self.quest_list:
             ui.row().classes('items-center mt-2').with_(
