@@ -28,10 +28,12 @@ class ToDoRPGApp:
             self.display_shop()
 
         ui.label("Gekaufte Items").classes("text-xl mt-4")
-        with ui.column() as self.item_list:  # Initialisiert den Item-Bereich
+        with ui.column() as self.item_list:
             self.display_items()
 
-
+        # Einklappbares Fenster für abgeschlossene Quests
+        with ui.expansion("Abgeschlossene Quests", icon="done") as self.completed_quests_list:
+            pass
 
 
     def add_quest_dialog(self):
@@ -52,6 +54,7 @@ class ToDoRPGApp:
                     )
                 )
         dialog.open()
+
 
     def add_quest(self, description, xp_reward, gold_reward, dialog=None):
         if not description.strip():
@@ -77,11 +80,30 @@ class ToDoRPGApp:
 
 
     def complete_quest(self, quest):
+        """
+        Markiert eine Quest als abgeschlossen, entfernt sie aus der aktiven Liste
+        und fügt sie in den Bereich 'Abgeschlossene Quests' ein.
+        """
         if quest.complete(self.character):
             self.update_status()
+
+            # Entfernt die Quest aus der aktiven Liste
+            if quest in self.quests:
+                self.quests.remove(quest)
+                self.quest_list.clear()
+                for q in self.quests:
+                    self.display_quest(q)
+
+            # Fügt die Quest in den Bereich 'Abgeschlossene Quests' ein
+            with self.completed_quests_list:
+                with ui.row().classes('items-center mt-2'):
+                    ui.label(f"{quest.description} - {quest.xp_reward} XP, {quest.gold_reward} Gold abgeschlossen").classes("text-base")
+
             ui.notify(f"Quest '{quest.description}' abgeschlossen!", color="green")
         else:
-            ui.notify("Quest konnte nicht abgeschlossen werden.", color="red")
+            ui.notify("Quest konnte nicht abgeschlossen werden.", color="red")             
+
+
 
     def display_shop(self):
     # Entfernen Sie alte Shop-Items

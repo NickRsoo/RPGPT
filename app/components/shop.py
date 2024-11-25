@@ -9,17 +9,17 @@ class Shop:
             "Schwert": {
                 "cost": 100,
                 "description": "Ein starkes Schwert.",
-                "icon": "/assets/shop_icons/broadsword.png"
+                "icon": "C:/Github/RPGPT/app/assets/shop_Icons/broadsword.png"
             },
             "Schild": {
                 "cost": 150,
                 "description": "Ein zuverlässiges Schild.",
-                "icon": "/assets/shop_icons/templar-shield.png"
+                "icon": "C:/Github/RPGPT/app/assets/shop_icons/templar-shield.png"
             },
             "Heiltrank": {
                 "cost": 50,
                 "description": "Stellt Gesundheit wieder her.",
-                "icon": "assets/shop_icons/heart-bottle.png"
+                "icon": "C:/Github/RPGPT/app/assets/shop_icons/heart-bottle.png"
             }
         }
 
