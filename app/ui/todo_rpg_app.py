@@ -1,165 +1,168 @@
 from nicegui import ui
 from components.character import Character
-from components.quest import Quest
 from components.shop import Shop
+from components.bosses import Boss
 
 class ToDoRPGApp:
     def __init__(self, character_name):
         self.character = Character(character_name)
-        self.quests = []
         self.shop = Shop()
+        self.bosses = self.create_bosses()
+        self.quests = []
+        self.completed_quests = []
         self.setup_ui()
 
+    def create_bosses(self):
+        """
+        Erstellt die Liste der Bosse mit Levelanforderungen und Belohnungen.
+        """
+        return [
+            Boss("Goblin King", 1, 30, 5, 10),
+            Boss("Skeleton Warrior", 2, 50, 7, 20),
+            Boss("Orc Chieftain", 3, 70, 10, 30),
+            Boss("Dark Mage", 4, 90, 12, 50),
+            Boss("Forest Guardian", 5, 110, 15, 70),
+            Boss("Shadow Assassin", 6, 130, 18, 100),
+            Boss("Fire Elemental", 7, 150, 20, 150),
+            Boss("Ice Dragon", 8, 200, 25, 200),
+            Boss("Demon Lord", 9, 250, 30, 300),
+            Boss("Eternal Titan", 10, 300, 35, 500),
+        ]
+
     def setup_ui(self):
-        ui.label(f"Willkommen, {self.character.name}!").classes("text-2xl")
+        with ui.row().classes('h-screen'):
+            # Navigation
+            with ui.column().classes('bg-gray-800 text-white w-1/4 p-4'):
+                ui.label("Menu").classes("text-xl font-bold mb-4")
+                self.create_nav_button("Taverne", icon="local_bar", section="tavern")
+                self.create_nav_button("Fights", icon="swords", section="fights")
+                self.create_nav_button("Händler", icon="shopping_cart", section="shop")
+                self.create_nav_button("Quarter", icon="house", section="character")
+                self.create_nav_button("Achievements", icon="emoji_events", section="achievements")
 
-        with ui.row().classes('justify-between'):
-            self.status = ui.label(self.get_status()).classes("text-lg")
-            ui.button("Status aktualisieren", on_click=self.update_status)
+            # Hauptbereich
+            with ui.column().classes('w-3/4 p-4'):
+                with ui.row().classes('justify-between items-center bg-gray-100 p-2 rounded mb-4'):
+                    self.status = ui.label(self.get_status()).classes("text-lg")
+                    ui.button("Status aktualisieren", on_click=self.update_status)
 
-        ui.label("Quests").classes("text-xl mt-4")
-        with ui.column() as self.quest_list:
-            pass
+                self.main_content = ui.column().classes('w-full')
+                self.display_tavern()
 
-        ui.button("Neue Quest hinzufügen", on_click=self.add_quest_dialog)
+    def create_nav_button(self, label, icon=None, section=None):
+        ui.button(label, icon=icon, on_click=lambda: self.change_content(section)).classes(
+            "w-full text-left bg-gray-700 hover:bg-gray-600 text-white mb-2 p-2 rounded"
+        )
 
-        ui.label("Shop").classes("text-xl mt-4")
-        with ui.column() as self.shop_items:
+    def change_content(self, section):
+        self.main_content.clear()
+        if section == "tavern":
+            self.display_tavern()
+        elif section == "fights":
+            self.display_fights()
+        elif section == "shop":
             self.display_shop()
+        elif section == "character":
+            self.display_character()
+        elif section == "achievements":
+            self.display_achievements()
 
-        ui.label("Gekaufte Items").classes("text-xl mt-4")
-        with ui.column() as self.item_list:
-            self.display_items()
+    def display_tavern(self):
+        """
+        Zeigt die Taverne mit Quest-Optionen.
+        """
+        with self.main_content:
+            ui.label("Taverne").classes("text-xl font-bold mb-4")
 
-        # Einklappbares Fenster für abgeschlossene Quests
-        with ui.expansion("Abgeschlossene Quests", icon="done") as self.completed_quests_list:
-            pass
+            # Aktive Quests
+            ui.label("Aktive Quests").classes("text-lg font-bold mt-2")
+            with ui.column().classes('gap-2'):
+                for quest in self.quests:
+                    with ui.row().classes('items-center gap-4'):
+                        ui.label(f"{quest['name']} - {quest['description']}")
+                        ui.button("Abschließen", on_click=lambda q=quest: self.complete_quest(q))
 
+            # Fertige Quests
+            ui.label("Fertige Quests").classes("text-lg font-bold mt-4")
+            with ui.column().classes('gap-2'):
+                for quest in self.completed_quests:
+                    ui.label(f"{quest['name']}").classes("text-base text-green-600")
 
-    def add_quest_dialog(self):
-        dialog = ui.dialog()
-        with dialog:
-            with ui.card():
-                ui.label("Neue Quest hinzufügen").classes("text-lg")
-                description = ui.input("Questbeschreibung")
-                xp_reward = ui.number("XP-Belohnung", value=0, min=0)
-                gold_reward = ui.number("Gold-Belohnung", value=0, min=0)
-                ui.button(
-                    "Hinzufügen",
-                    on_click=lambda: self.add_quest(
-                        description.value,
-                        int(xp_reward.value),
-                        int(gold_reward.value),
-                        dialog
-                    )
-                )
-        dialog.open()
+            # Neue Quest hinzufügen
+            ui.label("Neue Quest hinzufügen").classes("text-lg font-bold mt-4")
+            with ui.row().classes('gap-2 mt-2'):
+                name_input = ui.input("Questname").classes("w-1/2")
+                description_input = ui.input("Beschreibung").classes("w-1/2")
+                ui.button("Hinzufügen", on_click=lambda: self.add_quest(name_input.value, description_input.value))
 
-
-    def add_quest(self, description, xp_reward, gold_reward, dialog=None):
-        if not description.strip():
-            ui.notify("Die Beschreibung darf nicht leer sein.", color="red")
+    def add_quest(self, name, description):
+        """
+        Fügt eine neue Quest zur Liste hinzu.
+        """
+        if not name.strip() or not description.strip():
+            ui.notify("Questname und Beschreibung dürfen nicht leer sein.", color="red")
             return
-        quest = Quest(description, xp_reward, gold_reward)
-        self.quests.append(quest)  # Quest zur internen Liste hinzufügen
-        self.display_quest(quest)  # Quest zur Benutzeroberfläche hinzufügen
-        if dialog:
-            dialog.close()
-        ui.notify(f"Quest '{description}' hinzugefügt!", color="green")
-
-
-    def display_quest(self, quest):
-        """
-        Fügt eine Quest zur Benutzeroberfläche hinzu.
-        """
-        with self.quest_list:  # Stellt sicher, dass die Quest in der Liste angezeigt wird
-            row = ui.row().classes('items-center mt-2')
-            ui.label(f"{quest.description} - Belohnung: {quest.xp_reward} XP, {quest.gold_reward} Gold").classes("text-base")
-            ui.button("Abschließen", on_click=lambda q=quest: self.complete_quest(q))
-
-
+        self.quests.append({"name": name, "description": description})
+        ui.notify(f"Quest '{name}' hinzugefügt!", color="green")
+        self.display_tavern()
 
     def complete_quest(self, quest):
         """
-        Markiert eine Quest als abgeschlossen, entfernt sie aus der aktiven Liste
-        und fügt sie in den Bereich 'Abgeschlossene Quests' ein.
+        Schließt eine Quest ab und verschiebt sie zu den fertigen Quests.
         """
-        if quest.complete(self.character):
-            self.update_status()
+        self.quests.remove(quest)
+        self.completed_quests.append(quest)
+        ui.notify(f"Quest '{quest['name']}' abgeschlossen!", color="green")
+        self.display_tavern()
 
-            # Entfernt die Quest aus der aktiven Liste
-            if quest in self.quests:
-                self.quests.remove(quest)
-                self.quest_list.clear()
-                for q in self.quests:
-                    self.display_quest(q)
-
-            # Fügt die Quest in den Bereich 'Abgeschlossene Quests' ein
-            with self.completed_quests_list:
-                with ui.row().classes('items-center mt-2'):
-                    ui.label(f"{quest.description} - {quest.xp_reward} XP, {quest.gold_reward} Gold abgeschlossen").classes("text-base")
-
-            ui.notify(f"Quest '{quest.description}' abgeschlossen!", color="green")
-        else:
-            ui.notify("Quest konnte nicht abgeschlossen werden.", color="red")             
-
-
+    def display_fights(self):
+        """
+        Zeigt die Liste der Bosse an, die freigeschaltet oder gesperrt sind.
+        """
+        with self.main_content:
+            ui.label("Boss-Auswahl").classes("text-xl font-bold mb-4")
+            with ui.column().classes('gap-4'):
+                for boss in self.bosses:
+                    with ui.card().classes('p-4'):
+                        if self.character.level >= boss.level_required:
+                            ui.label(f"{boss.name} (Level {boss.level_required}) - HP: {boss.hp}").classes("text-lg")
+                            if not boss.defeated:
+                                ui.button("Kämpfen", on_click=lambda b=boss: self.start_fight(b)).classes("mt-2 bg-green-500 hover:bg-green-400 text-white")
+                            else:
+                                ui.label("Besiegt").classes("text-green-500 text-lg mt-2")
+                        else:
+                            ui.label(f"{boss.name} (Level {boss.level_required})").classes("text-lg text-gray-500")
+                            ui.label("Gesperrt").classes("text-gray-500 text-lg mt-2")
 
     def display_shop(self):
-    # Entfernen Sie alte Shop-Items
-        self.shop_items.clear()
-    
-        for item_name, item_info in self.shop.items.items():
-            with ui.row().classes('items-center mt-2'):  # Keine 'parent'-Parameter
-                ui.label(f"{item_name}: {item_info['cost']} Gold").classes("text-base")
-                ui.button(
-                    f"Kaufen ({item_name})",
-                    on_click=lambda name=item_name: self.buy_item(name)
-                )
+        with self.main_content:
+            ui.label("Händler").classes("text-xl font-bold mb-2")
+            for item_name, item_info in self.shop.items.items():
+                with ui.row().classes('items-center gap-4'):
+                    ui.label(f"{item_name}: {item_info['cost']} Gold")
+                    ui.button(f"Kaufen", on_click=lambda name=item_name: self.buy_item(name))
 
+    def display_character(self):
+        with self.main_content:
+            ui.label("Charakterinformationen").classes("text-xl font-bold mb-2")
+            ui.label(f"Level: {self.character.level}")
+            ui.label(f"Gold: {self.character.gold}")
 
-
-    def buy_item(self, item_name):
-        """
-        Führt den Kauf eines Items aus und aktualisiert den Item-Bereich.
-        """
-        if self.shop.buy(self.character, item_name):
-            item_info = self.shop.items[item_name]
-            self.character.add_item(item_name, item_info)
-            self.update_status()
-            self.display_items()  # Aktualisiert den Item-Bereich
-            ui.notify(f"'{item_name}' erfolgreich gekauft!", color="green")
-        else:
-            ui.notify(f"Nicht genügend Gold für '{item_name}'.", color="red")
+    def display_achievements(self):
+        with self.main_content:
+            ui.label("Errungenschaften").classes("text-xl font-bold mb-2")
+            if self.character.achievements:
+                for achievement in self.character.achievements:
+                    ui.label(f"- {achievement}")
+            else:
+                ui.label("Keine Errungenschaften.")
 
     def update_status(self):
         self.status.set_text(self.get_status())
 
     def get_status(self):
-        achievements = ", ".join(self.character.achievements) if self.character.achievements else "Keine"
-        return (
-            f"Level: {self.character.level}, "
-            f"XP: {self.character.xp}/{self.character.level * 100}, "
-            f"Gold: {self.character.gold}, "
-            f"Achievements: {achievements}"
-        )
-    
-    def display_items(self):
-        """
-        Zeigt alle gekauften Items im Bereich 'Gekaufte Items' an.
-        """
-        self.item_list.clear()
-        for item_name, item_info in self.character.items.items():
-            with self.item_list:
-                with ui.row().classes('items-center mt-2'):
-                    # Lokales Icon wird als Bild geladen
-                    ui.image(item_info['icon']).style('width: 50px; height: 50px;')
-                    ui.label(f"{item_name}: {item_info['description']}").classes("text-base")
+        return f"Level: {self.character.level}, Gold: {self.character.gold}"
 
-
-
-
-# Sicherstellen, dass die Anwendung korrekt gestartet wird
 if __name__ == "__main__":
     app = ToDoRPGApp("Abenteurer")
     ui.run(static_files={'/assets': 'assets'})
