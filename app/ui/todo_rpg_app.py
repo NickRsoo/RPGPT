@@ -2,15 +2,15 @@ from nicegui import ui
 from components.character import Character
 from components.shop import Shop
 from components.bosses import Boss
-from components.quest import Quest  # Import der Quest-Klasse
+from components.quest import Quest
 
 class ToDoRPGApp:
     def __init__(self, character_name):
         self.character = Character(character_name)
         self.shop = Shop()
         self.bosses = self.create_bosses()
-        self.quests = []  # Liste für aktive Quests
-        self.completed_quests = []  # Liste für abgeschlossene Quests
+        self.quests = []  # Aktive Quests
+        self.completed_quests = []  # Abgeschlossene Quests
         self.setup_ui()
 
     def create_bosses(self):
@@ -31,24 +31,35 @@ class ToDoRPGApp:
         ]
 
     def setup_ui(self):
-        with ui.row().classes('h-screen'):
-            # Navigation
-            with ui.column().classes('bg-gray-800 text-white w-1/4 p-4'):
-                ui.label("Menu").classes("text-xl font-bold mb-4")
+        with ui.row().classes('h-screen w-screen flex overflow-hidden'):
+            # Linkes Menü (fixiert, 20%)
+            with ui.column().classes('bg-gray-800 text-white w-1/5 h-full fixed top-0 left-0 p-4'):
+                # Charakterbereich oben
+                with ui.row().classes('items-center mb-6'):
+                    ui.image("C:/assets/Character_icons/avatar.png").style("width: 50px; height: 50px; border-radius: 50%;")
+                    with ui.column().classes('ml-4'):
+                        ui.label(f"{self.character.name}").classes("text-xl font-bold")
+                        ui.label(f"Gold: {self.character.gold}").classes("text-sm text-yellow-400")
+
+                # Navigationsbuttons
                 self.create_nav_button("Taverne", icon="local_bar", section="tavern")
                 self.create_nav_button("Fights", icon="swords", section="fights")
                 self.create_nav_button("Händler", icon="shopping_cart", section="shop")
                 self.create_nav_button("Quarter", icon="house", section="character")
                 self.create_nav_button("Achievements", icon="emoji_events", section="achievements")
 
-            # Hauptbereich
-            with ui.column().classes('w-3/4 p-4'):
-                with ui.row().classes('justify-between items-center bg-gray-100 p-2 rounded mb-4'):
+            # Hauptinhalt (rechts, 80%)
+            with ui.column().classes('ml-1/5 w-4/5 h-full p-6 bg-[url("C/assets/background/hintergrund.jpg")] bg-cover bg-center overflow-y-auto'):
+                # Statusbereich oben
+                with ui.row().classes('justify-between items-center bg-white p-4 rounded shadow mb-4'):
                     self.status = ui.label(self.get_status()).classes("text-lg")
-                    ui.button("Status aktualisieren", on_click=self.update_status)
+                    ui.button("Status aktualisieren", on_click=self.update_status).classes("bg-blue-500 text-white rounded p-2")
 
+                # Dynamischer Hauptinhalt
                 self.main_content = ui.column().classes('w-full')
-                self.display_tavern()
+                self.display_tavern()  # Standardanzeige: Taverne
+
+
 
     def create_nav_button(self, label, icon=None, section=None):
         ui.button(label, icon=icon, on_click=lambda: self.change_content(section)).classes(
@@ -69,9 +80,6 @@ class ToDoRPGApp:
             self.display_achievements()
 
     def display_tavern(self):
-        """
-        Zeigt die Taverne mit Quest-Optionen.
-        """
         with self.main_content:
             ui.label("Taverne").classes("text-xl font-bold mb-4")
 
@@ -83,7 +91,7 @@ class ToDoRPGApp:
                         ui.label(f"{quest.description} - {quest.xp_reward} XP, {quest.gold_reward} Gold")
                         ui.button("Abschließen", on_click=lambda q=quest: self.complete_quest(q))
 
-            # Fertige Quests
+            # Abgeschlossene Quests
             ui.label("Fertige Quests").classes("text-lg font-bold mt-4")
             with ui.column().classes('gap-2'):
                 for quest in self.completed_quests:
@@ -98,11 +106,11 @@ class ToDoRPGApp:
                 ui.button("Hinzufügen", on_click=lambda: self.add_quest(description_input.value, xp_input.value, gold_input.value))
 
     def add_quest(self, description, xp_reward, gold_reward):
-        """
-        Fügt eine neue Quest zur Liste hinzu.
-        """
         if not description.strip():
             ui.notify("Beschreibung darf nicht leer sein.", color="red")
+            return
+        if xp_reward <= 0 or gold_reward <= 0:
+            ui.notify("Belohnungen müssen größer als 0 sein.", color="red")
             return
         quest = Quest(description, xp_reward, gold_reward)
         self.quests.append(quest)
@@ -110,18 +118,13 @@ class ToDoRPGApp:
         self.display_tavern()
 
     def complete_quest(self, quest):
-        """
-        Schließt eine Quest ab und verschiebt sie zu den fertigen Quests.
-        """
         if quest.complete(self.character):
             self.quests.remove(quest)
             self.completed_quests.append(quest)
+            ui.notify(f"Quest '{quest.description}' abgeschlossen!", color="green")
             self.display_tavern()
 
     def display_fights(self):
-        """
-        Zeigt die Liste der Bosse an, die freigeschaltet oder gesperrt sind.
-        """
         with self.main_content:
             ui.label("Boss-Auswahl").classes("text-xl font-bold mb-4")
             with ui.column().classes('gap-4'):
@@ -137,23 +140,69 @@ class ToDoRPGApp:
                             ui.label(f"{boss.name} (Level {boss.level_required})").classes("text-lg text-gray-500")
                             ui.label("Gesperrt").classes("text-gray-500 text-lg mt-2")
 
+    def start_fight(self, boss):
+        player_turn = True
+        boss_hp = boss.hp
+        player_hp = self.character.hp
+        potion_used = False
+
+        while player_hp > 0 and boss_hp > 0:
+            ui.notify(f"Deine HP: {player_hp} | {boss.name} HP: {boss_hp}", color="blue")
+            if player_turn:
+                if self.hit_success(self.character.hit_chance()):
+                    damage = self.character.attack_damage()
+                    boss_hp -= damage
+                    ui.notify(f"Du hast {boss.name} für {damage} Schaden getroffen!", color="green")
+                else:
+                    ui.notify("Du hast verfehlt!", color="red")
+                if not potion_used and player_hp <= self.character.max_hp * 0.5:
+                    self.character.use_potion()
+                    potion_used = True
+            else:
+                if self.hit_success(70):
+                    raw_damage = boss.attack
+                    damage = self.character.reduce_damage(raw_damage)
+                    player_hp -= damage
+                    ui.notify(f"{boss.name} hat dich für {damage} Schaden getroffen!", color="red")
+                else:
+                    ui.notify(f"{boss.name} hat verfehlt!", color="blue")
+            player_turn = not player_turn
+
+        if boss_hp <= 0:
+            boss.defeated = True
+            self.character.add_gold(boss.reward_gold)
+            self.character.add_xp(boss.reward_gold * 2)
+            ui.notify(f"Du hast {boss.name} besiegt und {boss.reward_gold} Gold erhalten!", color="green")
+        else:
+            ui.notify("Du wurdest besiegt. Der Boss war zu stark.", color="red")
+
+        self.character.hp = player_hp
+        self.update_status()
+        self.display_fights()
+
     def display_shop(self):
-        """
-        Zeigt die verfügbaren Shop-Items mit Bildern und ermöglicht das Kaufen.
-        """
         with self.main_content:
             ui.label("Händler").classes("text-xl font-bold mb-4")
             for item_name, item_info in self.shop.items.items():
                 with ui.row().classes('items-center gap-4'):
-                    # Bild des Items
                     ui.image(item_info["image"]).style("width: 50px; height: 50px;")
-                    
-                    # Item-Details
                     ui.label(f"{item_name}: {item_info['cost']} Gold")
-                    
-                    # Kaufen-Button
                     ui.button(f"Kaufen", on_click=lambda name=item_name: self.buy_item(name))
 
+    def buy_item(self, item_name):
+        if item_name in self.shop.items:
+            item_info = self.shop.items[item_name]
+            if self.character.gold >= item_info["cost"]:
+                self.character.gold -= item_info["cost"]
+                item_type = item_info["type"]
+                self.character.equipment[item_type] = item_info
+                self.shop.items.pop(item_name)
+                ui.notify(f"'{item_name}' wurde erfolgreich gekauft!", color="green")
+                self.display_shop()
+            else:
+                ui.notify(f"Nicht genügend Gold für '{item_name}'.", color="red")
+        else:
+            ui.notify(f"Item '{item_name}' ist nicht verfügbar.", color="red")
 
     def display_character(self):
         with self.main_content:
@@ -175,77 +224,10 @@ class ToDoRPGApp:
 
     def get_status(self):
         return f"Level: {self.character.level}, Gold: {self.character.gold}"
-    
-    def start_fight(self, boss):
-        """
-        Rundenbasierter Kampf gegen einen Boss.
-        """
-        player_turn = True  # Der Spieler beginnt
-        boss_hp = boss.hp
-        player_hp = self.character.hp
-        potion_used = False
 
-        while player_hp > 0 and boss_hp > 0:
-            if player_turn:
-                # Spieler greift an
-                if self.hit_success(self.character.hit_chance()):
-                    damage = self.character.attack_damage()
-                    boss_hp -= damage
-                    ui.notify(f"Du hast {boss.name} für {damage} Schaden getroffen!", color="green")
-                else:
-                    ui.notify("Du hast verfehlt!", color="red")
-
-                # Option: Trank verwenden
-                if not potion_used and player_hp <= self.character.max_hp * 0.5:
-                    self.character.use_potion()
-                    potion_used = True
-            else:
-                # Boss greift an
-                if self.hit_success(70):  # Standard-Trefferwahrscheinlichkeit des Bosses
-                    raw_damage = boss.attack
-                    damage = self.character.reduce_damage(raw_damage)
-                    player_hp -= damage
-                    ui.notify(f"{boss.name} hat dich für {damage} Schaden getroffen!", color="red")
-                else:
-                    ui.notify(f"{boss.name} hat verfehlt!", color="blue")
-
-            # Wechsel der Runde
-            player_turn = not player_turn
-
-        # Kampfergebnis
-        if boss_hp <= 0:
-            boss.defeated = True
-            self.character.add_gold(boss.reward_gold)
-            self.character.add_xp(boss.reward_gold * 2)
-            self.character.unlock_achievement(f"Besiegt: {boss.name}")
-            ui.notify(f"Du hast {boss.name} besiegt und {boss.reward_gold} Gold erhalten!", color="green")
-        else:
-            ui.notify("Du wurdest besiegt. Der Boss war zu stark.", color="red")
-
-        # Nach dem Kampf HP zurücksetzen
-        self.character.hp = player_hp
-        self.update_status()
-        self.display_fights()
-
-    def buy_item(self, item_name):
-        """
-        Führt den Kauf eines Items aus und fügt es dem Inventar des Charakters hinzu.
-        """
-        if item_name in self.shop.items:
-            item_info = self.shop.items[item_name]
-            if self.character.gold >= item_info["cost"]:
-                # Gold abziehen
-                self.character.gold -= item_info["cost"]
-
-                # Item hinzufügen
-                item_type = item_info["type"]
-                self.character.equipment[item_type] = item_info
-                ui.notify(f"'{item_name}' wurde erfolgreich gekauft!", color="green")
-                self.update_status()
-            else:
-                ui.notify(f"Nicht genügend Gold für '{item_name}'.", color="red")
-        else:
-            ui.notify(f"Item '{item_name}' ist nicht verfügbar.", color="red")
+    def hit_success(self, chance: int) -> bool:
+        from random import randint
+        return randint(1, 100) <= chance
 
 
 if __name__ == "__main__":

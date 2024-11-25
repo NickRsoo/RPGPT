@@ -7,7 +7,7 @@ class Shop:
                 "type": "sword",
                 "cost": 50,
                 "damage": 15,
-                "image": "C:/Github/RPGPT/app/assets/shop_icons/broadswordsword.png"
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/broadsword.png"
             },
             "Steel Shield": {
                 "type": "shield",
@@ -19,14 +19,14 @@ class Shop:
                 "type": "armor",
                 "cost": 60,
                 "hit_chance_bonus": 10,
-                "image": "C:/Github/RPGPT/app/assets/shop_icons/leather_armor.png"
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/leather-armor.png"
             },
             "Health Potion": {
                 "type": "potion",
                 "cost": 30,
                 "heal": 50,
                 "used": False,
-                "image": "C:/Github/RPGPT/app/assets/shop_icons/heart_bottle.png"
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/heart-bottle.png"
             },
         }
 
