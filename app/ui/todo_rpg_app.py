@@ -18,14 +18,20 @@ class ToDoRPGApp:
             ui.button("Status aktualisieren", on_click=self.update_status)
 
         ui.label("Quests").classes("text-xl mt-4")
-        with ui.column() as self.quest_list:  # Weisen Sie die Spalte `self.quest_list` zu
+        with ui.column() as self.quest_list:
             pass
 
         ui.button("Neue Quest hinzufügen", on_click=self.add_quest_dialog)
 
         ui.label("Shop").classes("text-xl mt-4")
-        with ui.column() as self.shop_items:  # Weisen Sie die Spalte `self.shop_items` zu
+        with ui.column() as self.shop_items:
             self.display_shop()
+
+        ui.label("Gekaufte Items").classes("text-xl mt-4")
+        with ui.column() as self.item_list:  # Initialisiert den Item-Bereich
+            self.display_items()
+
+
 
 
     def add_quest_dialog(self):
@@ -48,17 +54,23 @@ class ToDoRPGApp:
         dialog.open()
 
     def add_quest(self, description, xp_reward, gold_reward, dialog=None):
-        if not description:
+        if not description.strip():
             ui.notify("Die Beschreibung darf nicht leer sein.", color="red")
             return
         quest = Quest(description, xp_reward, gold_reward)
-        self.quests.append(quest)
-        self.display_quest(quest)
+        self.quests.append(quest)  # Quest zur internen Liste hinzufügen
+        self.display_quest(quest)  # Quest zur Benutzeroberfläche hinzufügen
         if dialog:
             dialog.close()
+        ui.notify(f"Quest '{description}' hinzugefügt!", color="green")
+
 
     def display_quest(self, quest):
-        with ui.row().classes('items-center mt-2'):  
+        """
+        Fügt eine Quest zur Benutzeroberfläche hinzu.
+        """
+        with self.quest_list:  # Stellt sicher, dass die Quest in der Liste angezeigt wird
+            row = ui.row().classes('items-center mt-2')
             ui.label(f"{quest.description} - Belohnung: {quest.xp_reward} XP, {quest.gold_reward} Gold").classes("text-base")
             ui.button("Abschließen", on_click=lambda q=quest: self.complete_quest(q))
 
@@ -86,8 +98,14 @@ class ToDoRPGApp:
 
 
     def buy_item(self, item_name):
+        """
+        Führt den Kauf eines Items aus und aktualisiert den Item-Bereich.
+        """
         if self.shop.buy(self.character, item_name):
+            item_info = self.shop.items[item_name]
+            self.character.add_item(item_name, item_info)
             self.update_status()
+            self.display_items()  # Aktualisiert den Item-Bereich
             ui.notify(f"'{item_name}' erfolgreich gekauft!", color="green")
         else:
             ui.notify(f"Nicht genügend Gold für '{item_name}'.", color="red")
@@ -103,8 +121,23 @@ class ToDoRPGApp:
             f"Gold: {self.character.gold}, "
             f"Achievements: {achievements}"
         )
+    
+    def display_items(self):
+        """
+        Zeigt alle gekauften Items im Bereich 'Gekaufte Items' an.
+        """
+        self.item_list.clear()
+        for item_name, item_info in self.character.items.items():
+            with self.item_list:
+                with ui.row().classes('items-center mt-2'):
+                    # Lokales Icon wird als Bild geladen
+                    ui.image(item_info['icon']).style('width: 50px; height: 50px;')
+                    ui.label(f"{item_name}: {item_info['description']}").classes("text-base")
+
+
+
 
 # Sicherstellen, dass die Anwendung korrekt gestartet wird
 if __name__ == "__main__":
     app = ToDoRPGApp("Abenteurer")
-    ui.run()
+    ui.run(static_files={'/assets': 'assets'})

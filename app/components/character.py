@@ -1,13 +1,22 @@
+from nicegui import ui
+
 class Character:
     def __init__(self, name: str):
-        """
-        Repräsentiert einen Charakter mit Name, Level, XP, Gold und Errungenschaften.
-        """
         self.name = name
         self.level = 1
         self.xp = 0
         self.gold = 0
         self.achievements = []
+        self.items = {}  # Dictionary für gekaufte Items
+
+    def add_item(self, item_name: str, item_info: dict):
+        """
+        Fügt ein gekauftes Item zur Charakter-Item-Liste hinzu.
+        """
+        if item_name not in self.items:
+            self.items[item_name] = item_info
+
+
 
     def add_xp(self, xp: int):
         """
