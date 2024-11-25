@@ -1,67 +1,110 @@
-# todo_rpg_app.py
 from nicegui import ui
-from components import character
-from components import quest
-from components import shop
+from components.character import Character
+from components.quest import Quest
+from components.shop import Shop
 
 class ToDoRPGApp:
     def __init__(self, character_name):
-        self.character = character(character_name)
+        self.character = Character(character_name)
         self.quests = []
-        self.shop = shop()
+        self.shop = Shop()
         self.setup_ui()
 
     def setup_ui(self):
-        # Header und Charakterstatus
         ui.label(f"Willkommen, {self.character.name}!").classes("text-2xl")
+
         with ui.row().classes('justify-between'):
             self.status = ui.label(self.get_status()).classes("text-lg")
             ui.button("Status aktualisieren", on_click=self.update_status)
 
-        # Quests
         ui.label("Quests").classes("text-xl mt-4")
-        self.quest_list = ui.column()
+        with ui.column() as self.quest_list:  # Weisen Sie die Spalte `self.quest_list` zu
+            pass
+
         ui.button("Neue Quest hinzufügen", on_click=self.add_quest_dialog)
 
-        # Shop
         ui.label("Shop").classes("text-xl mt-4")
-        self.shop_items = ui.column()
-        self.display_shop()
+        with ui.column() as self.shop_items:  # Weisen Sie die Spalte `self.shop_items` zu
+            self.display_shop()
+
 
     def add_quest_dialog(self):
-        with ui.dialog() as dialog, ui.card():
-            ui.label("Neue Quest hinzufügen").classes("text-lg")
-            description = ui.input("Questbeschreibung")
-            xp_reward = ui.number("XP-Belohnung")
-            gold_reward = ui.number("Gold-Belohnung")
-            ui.button("Hinzufügen", on_click=lambda: self.add_quest(description.value, int(xp_reward.value), int(gold_reward.value), dialog))
+        dialog = ui.dialog()
+        with dialog:
+            with ui.card():
+                ui.label("Neue Quest hinzufügen").classes("text-lg")
+                description = ui.input("Questbeschreibung")
+                xp_reward = ui.number("XP-Belohnung", value=0, min=0)
+                gold_reward = ui.number("Gold-Belohnung", value=0, min=0)
+                ui.button(
+                    "Hinzufügen",
+                    on_click=lambda: self.add_quest(
+                        description.value,
+                        int(xp_reward.value),
+                        int(gold_reward.value),
+                        dialog
+                    )
+                )
+        dialog.open()
 
     def add_quest(self, description, xp_reward, gold_reward, dialog=None):
-        quest = quest(description, xp_reward, gold_reward)
+        if not description:
+            ui.notify("Die Beschreibung darf nicht leer sein.", color="red")
+            return
+        quest = Quest(description, xp_reward, gold_reward)
         self.quests.append(quest)
-        with self.quest_list:
-            ui.row().classes('items-center mt-2').with_(
-                ui.label(f"{description} - Belohnung: {xp_reward} XP, {gold_reward} Gold").classes("text-base"),
-                ui.button("Abschließen", on_click=lambda: self.complete_quest(quest))
-            )
+        self.display_quest(quest)
         if dialog:
             dialog.close()
+
+    def display_quest(self, quest):
+        with ui.row().classes('items-center mt-2'):  
+            ui.label(f"{quest.description} - Belohnung: {quest.xp_reward} XP, {quest.gold_reward} Gold").classes("text-base")
+            ui.button("Abschließen", on_click=lambda q=quest: self.complete_quest(q))
+
+
 
     def complete_quest(self, quest):
         if quest.complete(self.character):
             self.update_status()
+            ui.notify(f"Quest '{quest.description}' abgeschlossen!", color="green")
+        else:
+            ui.notify("Quest konnte nicht abgeschlossen werden.", color="red")
 
     def display_shop(self):
+    # Entfernen Sie alte Shop-Items
+        self.shop_items.clear()
+    
         for item_name, item_info in self.shop.items.items():
-            with self.shop_items:
-                ui.row().classes('items-center mt-2').with_(
-                    ui.label(f"{item_name}: {item_info['cost']} Gold").classes("text-base"),
-                    ui.button(f"Kaufen ({item_name})", on_click=lambda name=item_name: self.shop.buy(self.character, name))
+            with ui.row().classes('items-center mt-2'):  # Keine 'parent'-Parameter
+                ui.label(f"{item_name}: {item_info['cost']} Gold").classes("text-base")
+                ui.button(
+                    f"Kaufen ({item_name})",
+                    on_click=lambda name=item_name: self.buy_item(name)
                 )
+
+
+
+    def buy_item(self, item_name):
+        if self.shop.buy(self.character, item_name):
+            self.update_status()
+            ui.notify(f"'{item_name}' erfolgreich gekauft!", color="green")
+        else:
+            ui.notify(f"Nicht genügend Gold für '{item_name}'.", color="red")
 
     def update_status(self):
         self.status.set_text(self.get_status())
 
     def get_status(self):
         achievements = ", ".join(self.character.achievements) if self.character.achievements else "Keine"
-        return f"Level: {self.character.level}, XP: {self.character.xp}/{self.character.level * 100}, Gold: {self.character.gold}, Achievements: {achievements}"
+        return (
+            f"Level: {self.character.level}, "
+            f"XP: {self.character.xp}/{self.character.level * 100}, "
+            f"Gold: {self.character.gold}, "
+            f"Achievements: {achievements}"
+        )
+
+# Sicherstellen, dass die Anwendung korrekt gestartet wird
+if __name__ == "__main__":
+    app = ToDoRPGApp("Abenteurer")
+    ui.run()

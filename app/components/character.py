@@ -1,28 +1,32 @@
-# character.py
-from nicegui import ui
-
 class Character:
-    def __init__(self, name):
+    def __init__(self, name: str):
+        """
+        Repräsentiert einen Charakter mit Name, Level, XP, Gold und Errungenschaften.
+        """
         self.name = name
         self.level = 1
         self.xp = 0
         self.gold = 0
         self.achievements = []
 
-    def add_xp(self, amount):
-        self.xp += amount
+    def add_xp(self, xp: int):
+        """
+        Fügt XP hinzu und erhöht den Level, falls genügend XP gesammelt wurden.
+        """
+        self.xp += xp
         while self.xp >= self.level * 100:
-            self.level_up()
+            self.xp -= self.level * 100
+            self.level += 1
 
-    def level_up(self):
-        self.xp -= self.level * 100
-        self.level += 1
-        ui.notify(f"{self.name} ist auf Level {self.level} aufgestiegen!")
+    def add_gold(self, gold: int):
+        """
+        Fügt dem Charakter Gold hinzu.
+        """
+        self.gold += gold
 
-    def add_gold(self, amount):
-        self.gold += amount
-        ui.notify(f"{self.name} hat {amount} Gold erhalten!")
-
-    def add_achievement(self, achievement):
-        self.achievements.append(achievement)
-        ui.notify(f"Achievement erhalten: {achievement}!")
+    def unlock_achievement(self, achievement: str):
+        """
+        Fügt eine Errungenschaft hinzu, wenn sie noch nicht freigeschaltet wurde.
+        """
+        if achievement not in self.achievements:
+            self.achievements.append(achievement)
