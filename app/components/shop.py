@@ -2,26 +2,34 @@ from nicegui import ui
 
 class Shop:
     def __init__(self):
-        """
-        Repräsentiert einen Shop mit einer Liste verfügbarer Items.
-        """
         self.items = {
-            "Schwert": {
-                "cost": 100,
-                "description": "Ein starkes Schwert.",
-                "icon": "C:/Github/RPGPT/app/assets/shop_Icons/broadsword.png"
-            },
-            "Schild": {
-                "cost": 150,
-                "description": "Ein zuverlässiges Schild.",
-                "icon": "C:/Github/RPGPT/app/assets/shop_icons/templar-shield.png"
-            },
-            "Heiltrank": {
+            "Iron Sword": {
+                "type": "sword",
                 "cost": 50,
-                "description": "Stellt Gesundheit wieder her.",
-                "icon": "C:/Github/RPGPT/app/assets/shop_icons/heart-bottle.png"
-            }
+                "damage": 15,
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/broadswordsword.png"
+            },
+            "Steel Shield": {
+                "type": "shield",
+                "cost": 40,
+                "block": 5,
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/templar-shield.png"
+            },
+            "Leather Armor": {
+                "type": "armor",
+                "cost": 60,
+                "hit_chance_bonus": 10,
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/leather_armor.png"
+            },
+            "Health Potion": {
+                "type": "potion",
+                "cost": 30,
+                "heal": 50,
+                "used": False,
+                "image": "C:/Github/RPGPT/app/assets/shop_icons/heart_bottle.png"
+            },
         }
+
 
     def buy(self, character, item_name: str) -> bool:
         if item_name not in self.items:
