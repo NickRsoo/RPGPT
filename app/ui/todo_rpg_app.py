@@ -31,12 +31,13 @@ class ToDoRPGApp:
         ]
 
     def setup_ui(self):
+        # Hauptcontainer für die gesamte Seite
         with ui.row().classes('h-screen w-screen flex overflow-hidden'):
-            # Linkes Menü (fixiert, 20%)
-            with ui.column().classes('bg-gray-800 text-white w-1/5 h-full fixed top-0 left-0 p-4'):
-                # Charakterbereich oben
+            # Linkes Menü (fixiert auf 20%)
+            with ui.column().classes('bg-gray-800 text-white w-1/5 h-full p-4'):
+                # Charakterbereich
                 with ui.row().classes('items-center mb-6'):
-                    ui.image("C:/assets/Character_icons/avatar.png").style("width: 50px; height: 50px; border-radius: 50%;")
+                    ui.image("/assets/avatar.png").style("width: 50px; height: 50px; border-radius: 50%;")
                     with ui.column().classes('ml-4'):
                         ui.label(f"{self.character.name}").classes("text-xl font-bold")
                         ui.label(f"Gold: {self.character.gold}").classes("text-sm text-yellow-400")
@@ -48,8 +49,8 @@ class ToDoRPGApp:
                 self.create_nav_button("Quarter", icon="house", section="character")
                 self.create_nav_button("Achievements", icon="emoji_events", section="achievements")
 
-            # Hauptinhalt (rechts, 80%)
-            with ui.column().classes('ml-1/5 w-4/5 h-full p-6 bg-[url("C/assets/background/hintergrund.jpg")] bg-cover bg-center overflow-y-auto'):
+            # Hauptinhalt (80% rechts vom Menü)
+            with ui.column().classes('flex-1 h-full p-6 bg-[url("/assets/background/background.jpg")] bg-cover bg-center overflow-y-auto'):
                 # Statusbereich oben
                 with ui.row().classes('justify-between items-center bg-white p-4 rounded shadow mb-4'):
                     self.status = ui.label(self.get_status()).classes("text-lg")
@@ -58,6 +59,8 @@ class ToDoRPGApp:
                 # Dynamischer Hauptinhalt
                 self.main_content = ui.column().classes('w-full')
                 self.display_tavern()  # Standardanzeige: Taverne
+
+
 
 
 
