@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 3500
 
 # Starte die NiceGUI-App
-CMD ["python", "main.py"]
+CMD ["python", "app/main.py"]
