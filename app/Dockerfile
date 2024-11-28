@@ -11,7 +11,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Exponiere den Standard-Port für NiceGUI (3500)
-EXPOSE 3500
+EXPOSE 5000
 
 # Starte die NiceGUI-App
-CMD ["python", "main.py"]
+CMD ["python",  "main.py"]
