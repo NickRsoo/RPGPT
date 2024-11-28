@@ -10,8 +10,8 @@ COPY . /app
 # Installiere die notwendigen Python-Pakete
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Exponiere den Standard-Port für NiceGUI (8080)
-EXPOSE 8080
+# Exponiere den Standard-Port für NiceGUI (3500)
+EXPOSE 3500
 
 # Starte die NiceGUI-App
 CMD ["python", "main.py"]
