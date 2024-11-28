@@ -50,7 +50,7 @@ class ToDoRPGApp:
                 self.create_nav_button("Achievements", icon="emoji_events", section="achievements")
 
             # Hauptinhalt (80% rechts vom Menü)
-            with ui.column().classes('flex-1 h-full p-6 bg-[url("/assets/background/background.jpg")] bg-cover bg-center overflow-y-auto'):
+            with ui.column().classes('flex-1 h-full p-6 bg-[url("C:/Github/RPGPT/app/assets/background/background.jpg")] bg-cover bg-center overflow-y-auto'):
                 # Statusbereich oben
                 with ui.row().classes('justify-between items-center bg-white p-4 rounded shadow mb-4'):
                     self.status = ui.label(self.get_status()).classes("text-lg")
