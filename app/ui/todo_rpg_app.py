@@ -5,9 +5,8 @@ from components.bosses import Boss
 from components.quest import Quest
 
 class ToDoRPGApp:
-    def __init__(self, character_name, avatar):
+    def __init__(self, character_name):
         self.character = Character(character_name)
-        self.avatar = avatar  # Der ausgewählte Avatar
         self.shop = Shop()
         self.bosses = self.create_bosses()
         self.quests = []  # Aktive Quests
@@ -38,12 +37,11 @@ class ToDoRPGApp:
             with ui.column().classes('bg-gray-800 text-white w-1/5 h-full p-4'):
                 # Charakterbereich
                 with ui.row().classes('items-center mb-6'):
-                    if self.avatar:  # Zeigt den ausgewählten Avatar
-                        ui.image(self.avatar["image"]).style("width: 50px; height: 50px; border-radius: 50%;")
+                    ui.image("/assets/avatar.png").style("width: 50px; height: 50px; border-radius: 50%;")
                     with ui.column().classes('ml-4'):
-                        ui.label(f"{self.character_name}").classes("text-xl font-bold")
+                        ui.label(f"{self.character.name}").classes("text-xl font-bold")
                         ui.label(f"Gold: {self.character.gold}").classes("text-sm text-yellow-400")
-                        
+
                 # Navigationsbuttons
                 self.create_nav_button("Taverne", icon="local_bar", section="tavern")
                 self.create_nav_button("Fights", icon="swords", section="fights")
