@@ -4,16 +4,33 @@ from components.shop import Shop
 from components.bosses import Boss
 from components.quest import Quest
 
+# class ToDoRPGApp:
+#     def __init__(self, character_name, race, avatar):
+#         self.character = Character(character_name, race)
+#         self.race = race  # Speichert die gewählte Rasse
+#         self.avatar = avatar  # Speichert den gewählten Avatar
+#         self.shop = Shop()
+#         self.bosses = self.create_bosses()
+#         self.quests = []  # Aktive Quests
+#         self.completed_quests = []  # Abgeschlossene Quests
+#         self.setup_ui()
+
 class ToDoRPGApp:
     def __init__(self, character_name, race, avatar):
-        self.character = Character(character_name, race)
-        self.race = race  # Speichert die gewählte Rasse
-        self.avatar = avatar  # Speichert den gewählten Avatar
+        print(f"Spiel wird gestartet mit Name: {character_name}, Rasse: {race}, Avatar: {avatar}")  # Debugging
+
+        self.character_name = character_name  # Speichert den Namen
+        self.race = race  # Speichert die Rasse
+        self.avatar = avatar  # Speichert den Avatar
+
+        self.character = Character(character_name, race)  # Erstelle den Charakter mit Rasse
         self.shop = Shop()
         self.bosses = self.create_bosses()
-        self.quests = []  # Aktive Quests
-        self.completed_quests = []  # Abgeschlossene Quests
-        self.setup_ui()
+        self.quests = []
+        self.completed_quests = []
+
+        self.setup_ui()  # UI aufbauen
+
 
     def create_bosses(self):
         """
@@ -33,6 +50,7 @@ class ToDoRPGApp:
         ]
 
     def setup_ui(self):
+        print("ich bin hier")
         # Hauptcontainer für die gesamte Seite
         with ui.row().classes('h-screen w-screen flex overflow-hidden'):
             # Linkes Menü (fixiert auf 20%)
