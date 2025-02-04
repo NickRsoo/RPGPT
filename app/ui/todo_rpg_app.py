@@ -1,29 +1,16 @@
 from nicegui import ui
 from components.character import Character
 from components.shop import Shop
-from components.bosses import Boss
+from components.Bosses import Boss
 from components.quest import Quest
-
-# class ToDoRPGApp:
-#     def __init__(self, character_name, race, avatar):
-#         self.character = Character(character_name, race)
-#         self.race = race  # Speichert die gewählte Rasse
-#         self.avatar = avatar  # Speichert den gewählten Avatar
-#         self.shop = Shop()
-#         self.bosses = self.create_bosses()
-#         self.quests = []  # Aktive Quests
-#         self.completed_quests = []  # Abgeschlossene Quests
-#         self.setup_ui()
-
+from ui.database import init_db, save_quest, save_character
+init_db()
 class ToDoRPGApp:
-    def __init__(self, character_name, race, avatar):
-        print(f"Spiel wird gestartet mit Name: {character_name}, Rasse: {race}, Avatar: {avatar}")  # Debugging
-
+    def __init__(self, character_name):
+        print(f"Spiel wird gestartet mit Name: {character_name},")  # Debugging
         self.character_name = character_name  # Speichert den Namen
-        self.race = race  # Speichert die Rasse
-        self.avatar = avatar  # Speichert den Avatar
-
-        self.character = Character(character_name, race)  # Erstelle den Charakter mit Rasse
+        save_character(self.character_name)
+        self.character = Character(character_name,)  
         self.shop = Shop()
         self.bosses = self.create_bosses()
         self.quests = []
@@ -50,16 +37,15 @@ class ToDoRPGApp:
         ]
 
     def setup_ui(self):
-        print("ich bin hier")
         # Hauptcontainer für die gesamte Seite
         with ui.row().classes('h-screen w-screen flex overflow-hidden'):
             # Linkes Menü (fixiert auf 20%)
             with ui.column().classes('bg-gray-800 text-white w-1/5 h-full p-4'):
                 # Charakterbereich (im linken Menü)
                 with ui.row().classes('items-center mb-6'):
-                    ui.image(self.avatar["image"]).style("width: 50px; height: 50px; border-radius: 50%;")  # Avatar anzeigen
+                    # ui.image(self.avatar["image"]).style("width: 50px; height: 50px; border-radius: 50%;")  # Avatar anzeigen
                     with ui.column().classes('ml-4'):
-                        ui.label(f"{self.character_name} ({self.race})").classes("text-xl font-bold")  # Zeigt Name + Rasse
+                        ui.label(f"{self.character_name}") .classes("text-xl font-bold")  # Zeigt Name + Rasse
                         ui.label(f"Gold: {self.character.gold}").classes("text-sm text-yellow-400")
 
 
@@ -69,7 +55,7 @@ class ToDoRPGApp:
                 self.create_nav_button("Händler", icon="shopping_cart", section="shop")
                 self.create_nav_button("Quarter", icon="house", section="character")
                 self.create_nav_button("Achievements", icon="emoji_events", section="achievements")
-
+       
             # Hauptinhalt (80% rechts vom Menü)
             with ui.column().classes('flex-1 h-full p-6 bg-[url("C:/Github/RPGPT/app/assets/background/background.jpg")] bg-cover bg-center overflow-y-auto'):
                 # Statusbereich oben
@@ -81,8 +67,8 @@ class ToDoRPGApp:
                 self.main_content = ui.column().classes('w-full')
                 self.display_tavern()  # Standardanzeige: Taverne
 
-
-
+            
+ 
 
 
     def create_nav_button(self, label, icon=None, section=None):
@@ -104,9 +90,10 @@ class ToDoRPGApp:
             self.display_achievements()
 
     def display_tavern(self):
+        self.main_content.clear() 
         with self.main_content:
             ui.label("Taverne").classes("text-xl font-bold mb-4")
-
+    
             # Aktive Quests
             ui.label("Aktive Quests").classes("text-lg font-bold mt-2")
             with ui.column().classes('gap-2'):
@@ -128,14 +115,14 @@ class ToDoRPGApp:
                 description_input = ui.input("Beschreibung").classes("w-1/2")
                 xp_input = ui.number("XP-Belohnung", value=10, min=1).classes("w-1/6")
                 gold_input = ui.number("Gold-Belohnung", value=10, min=1).classes("w-1/6")
-
+                
                 # Dropdown für Schwierigkeit
                 difficulty_input = ui.select(["Leicht", "Mittel", "Schwer"], value="Mittel").classes("w-1/6")
 
                 # Datumsauswahl für Abschlussdatum
                 due_date_input = ui.input("Abschlussdatum (YYYY-MM-DD)").classes("w-1/6")
 
-                ui.button("Hinzufügen", on_click=lambda: self.add_quest(
+            ui.button("Hinzufügen", on_click=lambda: self.add_quest(
                     description_input.value,
                     xp_input.value,
                     gold_input.value,
@@ -156,6 +143,7 @@ class ToDoRPGApp:
 
         quest = Quest(description, xp_reward, gold_reward, difficulty, due_date)
         self.quests.append(quest)
+        # save_quest(description,xp_reward,gold_reward,difficulty,due_date,self.character_name)
         ui.notify(f"Quest '{description}' hinzugefügt!", color="green")
         self.display_tavern()
 
@@ -224,6 +212,7 @@ class ToDoRPGApp:
             self.display_fights()
 
     def display_shop(self):
+            self.main_content.clear()
             with self.main_content:
                 ui.label("Händler").classes("text-xl font-bold mb-4")
                 for item_name, item_info in self.shop.items.items():

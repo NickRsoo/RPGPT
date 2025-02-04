@@ -1,9 +1,9 @@
 from nicegui import ui
 
 class Character:
-    def __init__(self,race, name: str):
+    def __init__(self,name: str):
         self.name = name
-        self.race = race  # Speichert die gewählte Rasse
+        # self.ds = race  # Speichert die gewählte Rasse
         self.level = 1
         self.xp = 0
         self.gold = 0
