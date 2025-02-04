@@ -92,40 +92,59 @@ class ToDoRPGApp:
                 for quest in self.quests:
                     with ui.row().classes('items-center gap-4'):
                         ui.label(f"{quest.description} - {quest.xp_reward} XP, {quest.gold_reward} Gold")
+                        ui.label(f"Schwierigkeit: {quest.difficulty}, Abschlussdatum: {quest.due_date}")
                         ui.button("Abschließen", on_click=lambda q=quest: self.complete_quest(q))
 
             # Abgeschlossene Quests
             ui.label("Fertige Quests").classes("text-lg font-bold mt-4")
             with ui.column().classes('gap-2'):
                 for quest in self.completed_quests:
-                    ui.label(f"{quest.description}").classes("text-base text-green-600")
+                    ui.label(f"{quest.description} - {quest.difficulty}, abgeschlossen am: {quest.due_date}").classes("text-base text-green-600")
 
             # Neue Quest hinzufügen
             ui.label("Neue Quest hinzufügen").classes("text-lg font-bold mt-4")
             with ui.row().classes('gap-2 mt-2'):
                 description_input = ui.input("Beschreibung").classes("w-1/2")
-                xp_input = ui.number("XP-Belohnung", value=10, min=1).classes("w-1/4")
-                gold_input = ui.number("Gold-Belohnung", value=10, min=1).classes("w-1/4")
-                ui.button("Hinzufügen", on_click=lambda: self.add_quest(description_input.value, xp_input.value, gold_input.value))
+                xp_input = ui.number("XP-Belohnung", value=10, min=1).classes("w-1/6")
+                gold_input = ui.number("Gold-Belohnung", value=10, min=1).classes("w-1/6")
 
-    def add_quest(self, description, xp_reward, gold_reward):
-        if not description.strip():
-            ui.notify("Beschreibung darf nicht leer sein.", color="red")
-            return
-        if xp_reward <= 0 or gold_reward <= 0:
-            ui.notify("Belohnungen müssen größer als 0 sein.", color="red")
-            return
-        quest = Quest(description, xp_reward, gold_reward)
-        self.quests.append(quest)
-        ui.notify(f"Quest '{description}' hinzugefügt!", color="green")
+                # Dropdown für Schwierigkeit
+                difficulty_input = ui.select(["Leicht", "Mittel", "Schwer"], value="Mittel").classes("w-1/6")
+
+                # Datumsauswahl für Abschlussdatum
+                due_date_input = ui.input("Abschlussdatum (YYYY-MM-DD)").classes("w-1/6")
+
+                ui.button("Hinzufügen", on_click=lambda: self.add_quest(
+                    description_input.value,
+                    xp_input.value,
+                    gold_input.value,
+                    difficulty_input.value,
+                    due_date_input.value
+                ))
+
+def add_quest(self, description, xp_reward, gold_reward, difficulty, due_date):
+    if not description.strip():
+        ui.notify("Beschreibung darf nicht leer sein.", color="red")
+        return
+    if xp_reward <= 0 or gold_reward <= 0:
+        ui.notify("Belohnungen müssen größer als 0 sein.", color="red")
+        return
+    if not due_date:
+        ui.notify("Bitte ein Abschlussdatum angeben!", color="red")
+        return
+
+    quest = Quest(description, xp_reward, gold_reward, difficulty, due_date)
+    self.quests.append(quest)
+    ui.notify(f"Quest '{description}' hinzugefügt!", color="green")
+    self.display_tavern()
+
+def complete_quest(self, quest):
+    if quest.complete(self.character):
+        self.quests.remove(quest)
+        self.completed_quests.append(quest)
+        ui.notify(f"Quest '{quest.description}' abgeschlossen!", color="green")
         self.display_tavern()
 
-    def complete_quest(self, quest):
-        if quest.complete(self.character):
-            self.quests.remove(quest)
-            self.completed_quests.append(quest)
-            ui.notify(f"Quest '{quest.description}' abgeschlossen!", color="green")
-            self.display_tavern()
 
     def display_fights(self):
         with self.main_content:
